@@ -1,4 +1,4 @@
-package com.example.weatherapp;
+package com.example.TDmobile;
 import android.content.Context;
 import android.os.Bundle;
 import com.android.volley.Request;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(String response) {
 
                         try {
-                            JSONObject jObj = new JSONObject(response);
+                            JSONObject jObj = new JSONObject(response)
                             JSONObject jObjCurrent = jObj.getJSONObject("current_condition");
                             String tmp = jObjCurrent.getString("tmp");
                             String condition = jObjCurrent.getString("condition");
