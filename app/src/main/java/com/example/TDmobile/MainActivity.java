@@ -7,6 +7,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.weatherapp.R;
 import com.squareup.picasso.Picasso;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(String response) {
 
                         try {
-                            JSONObject jObj = new JSONObject(response)
+                            JSONObject jObj = new JSONObject(response);
                             JSONObject jObjCurrent = jObj.getJSONObject("current_condition");
                             String tmp = jObjCurrent.getString("tmp");
                             String condition = jObjCurrent.getString("condition");
@@ -53,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
                             textView.setText("Condition :" + condition);
                             textView2.setText("Température :" + tmp);
-                            //ImageView imageView = findViewById(R.id.imageView);
-                            //Picasso.get().load(icon).into(imageView);
+                            ImageView imageView = findViewById(R.id.imageView);
+                            Picasso.get().load(icon).into(imageView);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
