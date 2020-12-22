@@ -14,14 +14,6 @@
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_anchor="@+id/linearLayout"
-        app:layout_anchorGravity="top|center"
-        tools:src="@tools:sample/avatars" />
-
     <TextView
         android:id="@+id/textView"
         android:layout_width="94dp"
