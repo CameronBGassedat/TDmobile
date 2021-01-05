@@ -12,6 +12,8 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -42,37 +44,42 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    //Global variables for app
     Context context;
     TextView weekDays;
     TextView tempMin;
     TextView tempMax;
     TextView sunSet_id;
     TextView sunRise_id;
+    TextView humidity;
     String url = "";
 
-    String ville = "";
-    String tmp = "";
-    // Pour firebase si pas internet, prendre la dernière localisation sauvegardé.
+    //Global variables for widget
+    TextView ville;
+    TextView tmp;
 
+    //Global variables for connectivity
     Location gps_loc = null, network_loc = null;
     FloatingActionButton button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         context = getApplicationContext();
+
+        //Catching IDs for app
         weekDays = findViewById(R.id.weekDays);
         tempMin = findViewById(R.id.tempMin);
         tempMax = findViewById(R.id.tempMax);
         sunSet_id = findViewById(R.id.sunSet);
         sunRise_id = findViewById(R.id.sunRise);
+        //ville = findViewById(R.id.ville);
+        //tmp = findViewById(R.id.tmp);
         button = findViewById(R.id.villeButton);
 
+        //Button for Searching New Town
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,14 +92,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        Log.d("DEBUG", "onRequestPermissionsResult: COUCOU");
 
-        // Checker si on a un internet et si pas bon, break
-
-
-        // Si on a la permission LOCALISATION
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            // Vérifier les permissions réseaux et GPS plus précis
+        // Check if Phone is connected to the internet and that the permissions are given
+        if (isNetworkAvailable() == true && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             try {
                 assert locationManager != null;
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // Récupérer les coordonnées fournies par le GPS
+            // Catch GPS coordinates
             double latitude;
             double longitude;
             Location final_loc;
@@ -121,65 +123,68 @@ public class MainActivity extends AppCompatActivity {
                 longitude = 0.0;
             }
 
-            // Déterminer la position en fonction des coordonnées du GPS
+            // Find Position  with GPS coordinates
             try {
                 Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                 List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
                 if (addresses != null) {
-                    // Récupérer le nom de la ville
                     String villeGPS = addresses.get(0).getLocality();
-                    Log.d("DEBUG", "posi: " + villeGPS);
+                    Log.d("DEBUG", "Town Found: " + villeGPS);
                     url = "https://www.prevision-meteo.ch/services/json/" + villeGPS;
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference myRef = database.getReference("villeGPS");
+                    DatabaseReference myRef = database.getReference("location");
+                    myRef.setValue(url);
                 }
                 Bundle extra = getIntent().getExtras();
-                if (extra != null)
+                if (extra != null) {
                     url = "https://www.prevision-meteo.ch/services/json/" + extra.getString("input_key");
-
+                    // la sauvegarde ne fonctionne pas
+                    if (url != "empty") {
+                        url = extra.getString("url_key");
+                        FirebaseDatabase database = FirebaseDatabase.getInstance();
+                        DatabaseReference myRef = database.getReference("location");
+                        myRef.setValue("empty");
+                    }
+                }
+                Log.d("DEBUG", "onRequestPermissionsResult: "+url);
                 RequestQueue queue = Volley.newRequestQueue(context);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-
                                 try {
                                     JSONObject jsonObject = new JSONObject(response);
 
-                                    // city_info
+                                    /* city_info */
                                     JSONObject city_info = jsonObject.getJSONObject("city_info");
-                                    ville = city_info.getString("name");
+                                    String city = city_info.getString("name");
                                     String leveSoleil = city_info.getString("sunrise");
                                     String coucheSoleil = city_info.getString("sunset");
 
-                                    // Current_Condition
+                                    /* Current_Condition */
                                     JSONObject current_condition = jsonObject.getJSONObject("current_condition");
-                                    String icone = current_condition.getString("icon_big");
-                                    tmp = current_condition.getString("tmp");
+                                    String icon = current_condition.getString("icon_big");
+                                    String tmp_current = current_condition.getString("tmp");
                                     String condition = current_condition.getString("condition");
-                                    String humidite = current_condition.getString("humidity");
-                                    String vent = current_condition.getString("wnd_gust");
+                                    String humidity_s = current_condition.getString("humidity");
+                                    String wind = current_condition.getString("wnd_gust");
 
-                                    //FSCT_Day_0
+                                    /* FSCT_Day_0 */
                                     JSONObject fcst_day_0 = jsonObject.getJSONObject("fcst_day_0");
                                     String TempMin = fcst_day_0.getString("tmin");
                                     String TempMax = fcst_day_0.getString("tmax");
 
-                                    weekDays.setText("Condition :" + condition);
-                                    tempMin.setText("Température :" + leveSoleil);
-
-
-                                    Log.d("DEBUG", "onResponse: " + ville);
+                                    /* Setting Text For Display */
+                                    //ville.setText("" + city);
+                                    weekDays.setText("Condition : " + condition);
+                                    //tmp.setText("TempActuelle : " + tmp_current);
+                                    tempMin.setText("TempMinimale : " + TempMin);
+                                    tempMax.setText("TempMaximale : " + TempMax);
+                                    //humidity.setText("Humidité : " + humidity_s);
 
                                     // Icon of Weather
                                     ImageView imageView = findViewById(R.id.icon);
-                                    Picasso.get().load(icone).into(imageView);
-
-                                    // Sunset
-                                    ImageView imageView2 = findViewById(R.id.sunSet_id);
-
-                                    // Sun Rise
-                                    ImageView imageView3 = findViewById(R.id.sunRise_id);
+                                    Picasso.get().load(icon).into(imageView);
 
                                 } catch (JSONException e) {
                                     e.printStackTrace();
@@ -192,21 +197,22 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 queue.add(stringRequest);
-                // Gestion des erreurs
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
             Toast.makeText(context, "Vous n'avez pas l'autorisation", Toast.LENGTH_SHORT).show();
         }
-        //Mettre à jour le widget
+        //Updating The Widget
+        /*String temp_ville = ville.getText().toString();
+        String temp_tmp = tmp.getText().toString();
         Context context = this;
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.meteo_widget);
         ComponentName thisWidget = new ComponentName(context, MeteoWidget.class);
-        remoteViews.setTextViewText(R.id.widget_ville_id, ville);
-        remoteViews.setTextViewText(R.id.widget_tmp_id, tmp + " °C");
-        appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+        remoteViews.setTextViewText(R.id.widget_ville_id, temp_ville);
+        remoteViews.setTextViewText(R.id.widget_tmp_id, temp_tmp + " °C");
+        appWidgetManager.updateAppWidget(thisWidget, remoteViews);*/
     }
 
     @Override
@@ -224,5 +230,12 @@ public class MainActivity extends AppCompatActivity {
                 dialog.dismiss();
             }
         }).show();
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }
