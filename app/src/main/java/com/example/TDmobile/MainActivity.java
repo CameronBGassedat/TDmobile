@@ -1,7 +1,11 @@
 package com.example.TDmobile;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -12,7 +16,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +31,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -41,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
     TextView sunSet_id;
     TextView sunRise_id;
     String url = "";
+
+    String ville = "";
+    String tmp = "";
+    // Pour firebase si pas internet, prendre la dernière localisation sauvegardé.
 
     Location gps_loc = null, network_loc = null;
     FloatingActionButton button;
@@ -74,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         Log.d("DEBUG", "onRequestPermissionsResult: COUCOU");
+
+        // Checker si on a un internet et si pas bon, break
+
+
         // Si on a la permission LOCALISATION
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // Vérifier les permissions réseaux et GPS plus précis
@@ -114,6 +130,8 @@ public class MainActivity extends AppCompatActivity {
                     String villeGPS = addresses.get(0).getLocality();
                     Log.d("DEBUG", "posi: " + villeGPS);
                     url = "https://www.prevision-meteo.ch/services/json/" + villeGPS;
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("villeGPS");
                 }
                 Bundle extra = getIntent().getExtras();
                 if (extra != null)
@@ -130,19 +148,26 @@ public class MainActivity extends AppCompatActivity {
 
                                     // city_info
                                     JSONObject city_info = jsonObject.getJSONObject("city_info");
-                                    String ville = city_info.getString("name");
+                                    ville = city_info.getString("name");
                                     String leveSoleil = city_info.getString("sunrise");
                                     String coucheSoleil = city_info.getString("sunset");
+
+                                    // Current_Condition
                                     JSONObject current_condition = jsonObject.getJSONObject("current_condition");
                                     String icone = current_condition.getString("icon_big");
-                                    String tmp = current_condition.getString("tmp");
+                                    tmp = current_condition.getString("tmp");
                                     String condition = current_condition.getString("condition");
                                     String humidite = current_condition.getString("humidity");
                                     String vent = current_condition.getString("wnd_gust");
 
+                                    //FSCT_Day_0
+                                    JSONObject fcst_day_0 = jsonObject.getJSONObject("fcst_day_0");
+                                    String TempMin = fcst_day_0.getString("tmin");
+                                    String TempMax = fcst_day_0.getString("tmax");
+
                                     weekDays.setText("Condition :" + condition);
                                     tempMin.setText("Température :" + leveSoleil);
-                                    //textView2.setText();
+
 
                                     Log.d("DEBUG", "onResponse: " + ville);
 
@@ -171,6 +196,33 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else {
+            Toast.makeText(context, "Vous n'avez pas l'autorisation", Toast.LENGTH_SHORT).show();
         }
+        //Mettre à jour le widget
+        Context context = this;
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.meteo_widget);
+        ComponentName thisWidget = new ComponentName(context, MeteoWidget.class);
+        remoteViews.setTextViewText(R.id.widget_ville_id, ville);
+        remoteViews.setTextViewText(R.id.widget_tmp_id, tmp + " °C");
+        appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+    }
+
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Voulez vous vraiment quitter ?")
+                .setTitle("Attention !")
+                .setPositiveButton("Continuer", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        System.exit(0);
+                        dialog.dismiss();
+                    }
+                }).setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).show();
     }
 }
