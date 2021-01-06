@@ -53,8 +53,8 @@ public class VilleActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         value = dataSnapshot.getValue(String.class);
+                        Log.d("DEBUG", "URL status value on+ db: "+value);
                     }
-
                     @Override
                     public void onCancelled(DatabaseError error) {
                         // Failed to read value
@@ -62,7 +62,8 @@ public class VilleActivity extends AppCompatActivity {
                     }
                 });
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.putExtra("url", value);
+                intent.putExtra("input_key", value);
+                Log.d("DEBUG", "URL status sending value: "+value);
                 startActivity(intent);
             }
         });

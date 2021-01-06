@@ -129,24 +129,17 @@ public class MainActivity extends AppCompatActivity {
                 List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
                 if (addresses != null) {
                     String villeGPS = addresses.get(0).getLocality();
-                    Log.d("DEBUG", "Town Found: " + villeGPS);
-                    url = "https://www.prevision-meteo.ch/services/json/" + villeGPS;
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference myRef = database.getReference("location");
-                    myRef.setValue(url);
+                    url = "https://www.prevision-meteo.ch/services/json/"+ villeGPS;
                 }
                 Bundle extra = getIntent().getExtras();
                 if (extra != null) {
+                    String temporary = extra.getString("input_key");
                     url = "https://www.prevision-meteo.ch/services/json/" + extra.getString("input_key");
-                    // la sauvegarde ne fonctionne pas
-                    if (url != "empty") {
-                        url = extra.getString("url_key");
-                        FirebaseDatabase database = FirebaseDatabase.getInstance();
-                        DatabaseReference myRef = database.getReference("location");
-                        myRef.setValue("empty");
-                    }
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("location");
+                    myRef.setValue(temporary);
                 }
-                Log.d("DEBUG", "onRequestPermissionsResult: "+url);
+                Log.d("DEBUG", "URL status content: "+url);
                 RequestQueue queue = Volley.newRequestQueue(context);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         new Response.Listener<String>() {
