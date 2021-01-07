@@ -5,11 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="vertical">
 
 
         <TextView
@@ -22,45 +23,65 @@
             android:id="@+id/icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/image_de_la_m_t_o" />
 
         <TextView
-            android:id="@+id/tempMin"
+            android:id="@+id/temp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:layout_marginBottom="20dp"/>
-        <TextView
-            android:id="@+id/tempMax"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:layout_marginBottom="20dp"/>
-        <!-- Icone levez de soleil -->
-        <ImageView
-            android:id="@+id/sunSet_id"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_marginBottom="20dp"
+            android:textSize="25sp" />
 
-        <TextView
-            android:id="@+id/sunSet"
+        <!-- Icone lever de soleil -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:layout_marginBottom="20dp"/>
-        <!-- Icone couchez de soleil -->
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="20dp">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/sea"
+                android:contentDescription="@string/lever_de_soleil" />
+
+            <TextView
+                android:id="@+id/sunSet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="22dp"
+                android:textSize="25sp" />
+
+        </LinearLayout>
+        <!-- Icone coucher de soleil -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
         <ImageView
-            android:id="@+id/sunRise_id"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/sunrise"
+            android:contentDescription="@string/coucher_de_soleil" />
 
         <TextView
             android:id="@+id/sunRise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="10dp"
+            android:textSize="25sp" />
     </LinearLayout>
+
+    </LinearLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -74,7 +95,8 @@
             android:src="@drawable/ic_baseline_add_location_24"
             app:fabSize="normal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:contentDescription="@string/saisir_une_ville" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -12,8 +12,9 @@
         android:id="@+id/searchVille"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Entrez la ville"
-        android:textSize="20dp"/>
+        android:hint="@string/entrez_la_ville"
+        android:textSize="20sp"
+        android:inputType="text" />
 
     <Button
         android:id="@+id/buttonValider"
@@ -21,6 +22,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:textSize="25sp"
-        android:hint="Valider"/>
+        android:hint="@string/valider"/>
 
 </LinearLayout>

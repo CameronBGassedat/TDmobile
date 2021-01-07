@@ -42,16 +42,13 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    Context context;
     TextView weekDays;
-    TextView tempMin;
-    TextView tempMax;
+    TextView temp;
     TextView sunSet_id;
     TextView sunRise_id;
     String url = "";
 
-    String ville = "";
-    String tmp = "";
+    String villeGPS = "";
     // Pour firebase si pas internet, prendre la dernière localisation sauvegardé.
 
     Location gps_loc = null, network_loc = null;
@@ -65,10 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-        context = getApplicationContext();
         weekDays = findViewById(R.id.weekDays);
-        tempMin = findViewById(R.id.tempMin);
-        tempMax = findViewById(R.id.tempMax);
+        temp = findViewById(R.id.temp);
         sunSet_id = findViewById(R.id.sunSet);
         sunRise_id = findViewById(R.id.sunRise);
         button = findViewById(R.id.villeButton);
@@ -127,99 +122,100 @@ public class MainActivity extends AppCompatActivity {
                 List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
                 if (addresses != null) {
                     // Récupérer le nom de la ville
-                    String villeGPS = addresses.get(0).getLocality();
+                    villeGPS = addresses.get(0).getLocality();
                     Log.d("DEBUG", "posi: " + villeGPS);
                     url = "https://www.prevision-meteo.ch/services/json/" + villeGPS;
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference myRef = database.getReference("villeGPS");
+                    //  FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    //  DatabaseReference myRef = database.getReference("villeGPS");
                 }
-                Bundle extra = getIntent().getExtras();
-                if (extra != null)
-                    url = "https://www.prevision-meteo.ch/services/json/" + extra.getString("input_key");
-
-                RequestQueue queue = Volley.newRequestQueue(context);
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-
-                                try {
-                                    JSONObject jsonObject = new JSONObject(response);
-
-                                    // city_info
-                                    JSONObject city_info = jsonObject.getJSONObject("city_info");
-                                    ville = city_info.getString("name");
-                                    String leveSoleil = city_info.getString("sunrise");
-                                    String coucheSoleil = city_info.getString("sunset");
-
-                                    // Current_Condition
-                                    JSONObject current_condition = jsonObject.getJSONObject("current_condition");
-                                    String icone = current_condition.getString("icon_big");
-                                    tmp = current_condition.getString("tmp");
-                                    String condition = current_condition.getString("condition");
-                                    String humidite = current_condition.getString("humidity");
-                                    String vent = current_condition.getString("wnd_gust");
-
-                                    //FSCT_Day_0
-                                    JSONObject fcst_day_0 = jsonObject.getJSONObject("fcst_day_0");
-                                    String TempMin = fcst_day_0.getString("tmin");
-                                    String TempMax = fcst_day_0.getString("tmax");
-
-                                    weekDays.setText("Condition :" + condition);
-                                    tempMin.setText("Température :" + leveSoleil);
-
-
-                                    Log.d("DEBUG", "onResponse: " + ville);
-
-                                    // Icon of Weather
-                                    ImageView imageView = findViewById(R.id.icon);
-                                    Picasso.get().load(icone).into(imageView);
-
-                                    // Sunset
-                                    ImageView imageView2 = findViewById(R.id.sunSet_id);
-
-                                    // Sun Rise
-                                    ImageView imageView3 = findViewById(R.id.sunRise_id);
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        weekDays.setText("That didn't work!");
-                    }
-                });
-                queue.add(stringRequest);
-                // Gestion des erreurs
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else {
-            Toast.makeText(context, "Vous n'avez pas l'autorisation", Toast.LENGTH_SHORT).show();
+        } else if (grantResults.length > 0) {
+            Toast.makeText(getApplicationContext(), getString(R.string.autorisation), Toast.LENGTH_SHORT).show();
         }
-        //Mettre à jour le widget
-        Context context = this;
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.meteo_widget);
-        ComponentName thisWidget = new ComponentName(context, MeteoWidget.class);
-        remoteViews.setTextViewText(R.id.widget_ville_id, ville);
-        remoteViews.setTextViewText(R.id.widget_tmp_id, tmp + " °C");
-        appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+        Bundle extra = getIntent().getExtras();
+        if (extra != null)
+            url = "https://www.prevision-meteo.ch/services/json/" + extra.getString("input_key");
+
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+
+                            // city_info
+                            JSONObject city_info = jsonObject.getJSONObject("city_info");
+                            String ville = city_info.getString("name");
+                            String coucheSoleil = city_info.getString("sunrise");
+                            String leveSoleil = city_info.getString("sunset");
+
+                            // Current_Condition
+                            JSONObject current_condition = jsonObject.getJSONObject("current_condition");
+                            String icone = current_condition.getString("icon_big");
+                            String tmp = current_condition.getString("tmp");
+                            //String condition = current_condition.getString("condition");
+                            String humidite = current_condition.getString("humidity");
+                            String vent = current_condition.getString("wnd_gust");
+
+                            //FSCT_Day_0
+                            JSONObject fcst_day_0 = jsonObject.getJSONObject("fcst_day_0");
+                            String TempMin = fcst_day_0.getString("tmin");
+                           // String TempMax = fcst_day_0.getString("tmax");
+                            String weekD = fcst_day_0.getString("day_long");
+
+                            weekDays.setText(getString(R.string.jour, weekD));
+                            temp.setText(getString(R.string.temperature, tmp));
+                            sunSet_id.setText(getString(R.string.coucher_de_soleil, coucheSoleil));
+                            sunRise_id.setText(getString(R.string.lever_de_soleil, leveSoleil));
+
+
+
+
+
+                            Log.d("DEBUG", "onResponse: " + ville);
+
+                            // Icon of Weather
+                            ImageView imageView = findViewById(R.id.icon);
+                            Picasso.get().load(icone).into(imageView);
+
+
+                            //Mettre à jour le widget
+                            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+                            RemoteViews remoteViews = new RemoteViews(getApplicationContext().getPackageName(), R.layout.meteo_widget);
+                            ComponentName thisWidget = new ComponentName(getApplicationContext(), MeteoWidget.class);
+                            remoteViews.setTextViewText(R.id.widget_ville_id, villeGPS);
+                            remoteViews.setTextViewText(R.id.widget_tmp_id, tmp + " °C");
+                            appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                weekDays.setText(R.string.error);
+            }
+        });
+        queue.add(stringRequest);
     }
 
     @Override
     public void onBackPressed() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage("Voulez vous vraiment quitter ?")
-                .setTitle("Attention !")
-                .setPositiveButton("Continuer", new DialogInterface.OnClickListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+        builder.setMessage(getString(R.string.quitter))
+                .setTitle(R.string.attention)
+                .setPositiveButton(R.string.continuer, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         System.exit(0);
                         dialog.dismiss();
                     }
-                }).setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+                }).setNegativeButton(R.string.annuler, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
             }

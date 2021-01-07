@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="image_de_la_m_t_o">Image de la météo</string>
+    <string name="lever_de_soleil">%1$S</string>
+    <string name="coucher_de_soleil">%1$S</string>
+    <string name="saisir_une_ville">saisir une ville</string>
+    <string name="quitter">Voulez vous vraiment quitter ?</string>
+    <string name="continuer">Continuer</string>
+    <string name="annuler">Annuler</string>
+    <string name="error">Cela n\'a pas marcher</string>
+    <string name="attention">Attention !</string>
+    <string name="autorisation">Vous n\'avez pas l\'autorisation</string>
+    <string name="temperature">%1$S °C</string>
+    <string name="jour">%1$S</string>
+    <string name="valider">Valider</string>
+    <string name="entrez_la_ville">Entrer la ville</string>
+</resources>
