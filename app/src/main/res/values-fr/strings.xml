@@ -15,4 +15,6 @@
     <string name="jour">%1$S</string>
     <string name="valider">Valider</string>
     <string name="entrez_la_ville">Entrer la ville</string>
+    <string name="entrer_votre_nom">"Entrer votre nom "</string>
+    <string name="bienvenue">Bienvenue %1$S</string>
 </resources>
